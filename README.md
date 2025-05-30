@@ -1,11 +1,25 @@
-# multi-agent-ai-system
-Multi-Format Autonomous AI System with Contextual Decisioning &amp; Chained Actions
-🚀 Overview
-This project is a robust, modular multi-agent AI system that processes Email, JSON, and PDF documents. It classifies both format and business intent, routes to specialized agents, extracts structured data, and dynamically chains follow-up actions such as escalation, alerting, or compliance flagging.
-All processing steps and decisions are logged in a shared memory store for full auditability.
+# 🤖 FlowBit AI – Multi-Agent Document Intake System
 
-🏗️ Architecture
-text
+FlowBit AI is a robust, modular multi-agent AI system that processes **Email**, **JSON**, and **PDF** documents. It classifies document format and business intent, routes content to specialized agents, extracts structured data, and dynamically chains follow-up actions such as escalation, alerting, or compliance flagging.
+
+All steps are logged in a shared memory store (**Redis**) for full auditability.
+
+---
+
+## 🚀 Overview
+
+### Core Capabilities:
+- Detect format (Email, JSON, PDF)
+- Classify intent (Invoice, Complaint, RFQ, Fraud, etc.)
+- Extract structured data
+- Trigger follow-up actions (escalation, alerts)
+- Maintain audit log in shared memory
+
+---
+
+## 🏗️ Architecture
+
+```text
 User Upload (via Streamlit UI)
    │
    ▼
@@ -16,188 +30,174 @@ Action Router ◄───────────────┴─────
    │
    ▼
 Shared Memory Store (Redis)
-Classifier Agent: Uses OpenAI LLM to detect document format and business intent.
+```
 
-Specialized Agents: Extract/validate fields from Email, JSON, or PDF.
+### Components:
+- **Classifier Agent** – Uses OpenAI LLM to detect format and intent
+- **Specialized Agents** – Extract/validate fields based on document type
+- **Action Router** – Triggers follow-up REST actions
+- **Shared Memory** – Redis-based central store for metadata and logs
 
-Action Router: Triggers follow-up actions (escalate, alert, compliance flag) via REST API.
+---
 
-Shared Memory: Stores all metadata, agent outputs, and action traces for audit.
+## 🧩 Agent Logic
 
-🧩 Agent Logic
-1. Classifier Agent
-Input: Raw content + filename.
+### 1. 🧠 Classifier Agent
+- **Input:** Raw content + filename  
+- **Logic:** Uses LLM to classify format and business intent  
+- **Output:**
+```json
+{ "format": "email", "intent": "complaint" }
+```
+- **Audit:** Writes classification metadata to Redis
 
-Logic:
+---
 
-Uses OpenAI LLM with few-shot prompt examples and schema cues.
-
-Detects format: Email, JSON, PDF.
-
-Detects intent: RFQ, Complaint, Invoice, Regulation, Fraud Risk.
-
-Output:
-
-{ "format": "...", "intent": "..." }
-
-Writes classification metadata (source, timestamp, result) to Redis.
-
-2. Email Agent
-Input: Email content.
-
-Logic:
-
-Uses OpenAI to extract sender, urgency, issue/request, and tone (escalation, polite, threatening, etc.).
-
-Output:
-
+### 2. 📧 Email Agent
+- **Input:** Email content  
+- **Logic:** Extracts sender, urgency, issue, and tone (e.g., escalation)  
+- **Output:**
+```json
 { "sender": "...", "urgency": "...", "issue": "...", "tone": "..." }
+```
 
-Writes extraction result to Redis.
+---
 
-3. JSON Agent
-Input: JSON string (webhook data).
-
-Logic:
-
-Validates required schema using Pydantic.
-
-Flags anomalies (missing fields, type errors).
-
-Output:
-
+### 3. 🧾 JSON Agent
+- **Input:** Webhook JSON  
+- **Logic:** Validates schema using Pydantic, flags anomalies  
+- **Output:**
+```json
 { "data": {...}, "anomalies": [...] }
+```
 
-Writes result to Redis; logs alert if anomalies found.
+---
 
-4. PDF Agent
-Input: PDF file path.
+### 4. 📄 PDF Agent
+- **Input:** PDF file path  
+- **Logic:** Parses invoice total and compliance terms (e.g., GDPR, HIPAA)  
+- **Output:**
+```json
+{ "total": 11000, "compliance_terms": ["GDPR"], "flags": ["high_amount"] }
+```
 
-Logic:
+---
 
-Uses pdfplumber to extract text and parse line-item invoice or policy.
+### 5. 🔁 Action Router
+- **Input:** Outputs from agents  
+- **Logic:**
+  - Escalates via CRM API  
+  - Alerts risk via webhook  
+  - Flags compliance issues  
+- **Output:**
+```json
+{ "action": "escalate", "api_response": 200 }
+```
 
-Extracts invoice total, compliance terms ("GDPR", "FDA", etc.).
+---
 
-Flags if total > 10,000 or compliance terms found.
+## 🔁 End-to-End Flow Example
 
-Robust parsing of LLM output for compliance terms.
+1. User uploads an `.eml` file  
+2. **Classifier Agent**: Detects `email` + `complaint`  
+3. **Email Agent**: Extracts sender, urgency=`high`, tone=`escalation`  
+4. **Action Router**: Sends to `/crm/escalate`  
+5. **Redis**: Stores full trace for audit
 
-Output:
+---
 
-{ "total": ..., "compliance_terms": [...], "flags": [...] }
+## 🖥️ User Interface
 
-Writes result to Redis.
+- Built using **Streamlit**
+- Drag-and-drop upload
+- Step-by-step agent trace
+- Final output summary with download option
+- Save output logs as `output_logs.json`
 
-5. Action Router
-Input: Agent outputs.
+---
 
-Logic:
+## 🛠️ Tech Stack
 
-If urgent escalation: POST to CRM escalate API.
+- Python 3.10+
+- OpenAI GPT-4o / GPT-3.5-turbo
+- Streamlit
+- Redis
+- pdfplumber
+- Pydantic
+- requests
 
-If anomalies: POST to risk alert API.
+---
 
-If compliance flag: POST to compliance API.
+## 🧪 How to Run
 
-Else: log and close.
+### 1. Install dependencies:
 
-Includes retry logic and error handling.
-
-Output:
-
-{ "action": "...", "api_response": ... }
-
-Writes action trace to Redis.
-
-🔁 End-to-End Flow Example
-User uploads an email file.
-
-Classifier Agent: Detects Email + Complaint.
-
-Email Agent: Extracts sender, urgency=high, tone=escalation.
-
-Action Router: Calls (simulated) POST /crm/escalate.
-
-Shared Memory: Logs classification, extraction, and action for audit.
-
-🖥️ User Interface
-Streamlit app for uploading files and visualizing the classification, extraction, and action routing.
-
-Step-by-step output with clear, human-readable summaries.
-
-Agent trace for full auditability.
-
-Download button to export output logs as JSON.
-
-🛠️ Tech Stack
-Python 3.10+
-
-OpenAI LLM (gpt-4o or gpt-3.5-turbo)
-
-Streamlit (UI)
-
-Redis (shared memory)
-
-pdfplumber (PDF parsing)
-
-Pydantic (JSON validation)
-
-requests (REST calls)
-
-🧪 How to Run
-Clone the repo and install requirements:
-
-bash
+```bash
 pip install -r requirements.txt
-Set up your .env file:
+```
 
-text
+### 2. Create `.env` file:
+
+```env
 OPENAI_API_KEY=your-openai-key
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=yourpassword
+
 CRM_API_URL=https://httpbin.org/post
 RISK_API_URL=https://httpbin.org/post
 COMPLIANCE_API_URL=https://httpbin.org/post
-Start Redis (locally or via Docker).
+```
 
-Run the UI:
+### 3. Start Redis locally or via Docker
 
-bash
+### 4. Run the Streamlit UI:
+
+```bash
 streamlit run app.py
-Upload sample files (Email, JSON, PDF) and view step-by-step results.
+```
 
-🗂️ Sample Inputs
-Email: .eml or .txt files with various tones/intents.
+---
 
-JSON: Valid and invalid webhook samples.
+## 🗂️ Sample Inputs
 
-PDF: Invoices and policy docs with/without compliance terms.
+Available in the `/sample_inputs/` directory:
+- **Email:** `.txt` or `.eml` files with various tones/intents
+- **JSON:** Valid and invalid webhook samples
+- **PDF:** Invoices and policy documents
 
-See the sample_inputs/ folder.
+---
 
-📤 Output Logs
-After processing, click "💾 Save Output Logs as JSON" in the UI.
+## 📤 Output Logs
 
-The logs are exported as output_logs.json for audit or submission.
+- All results are written to Redis for traceability
+- Use the UI button to download: `output_logs.json`
 
-📸 Screenshots & Diagrams
-See /screenshots/ for UI and output examples.
+---
 
-See /docs/architecture.png or /screenshots/agent_flow_diagram.png for the agent flow diagram.
+## 📸 Screenshots & Diagrams
 
-🖼️ Agent Flow Diagram
-![Agent Flow Diagram](screenshots/agent 📝 Submission Checklist
+- Screenshots: `/screenshots/`
+- Architecture Diagram: `/screenshots/agent_flow_diagram.png` or `/docs/architecture.png`
 
- README.md (this file)
+### 🖼️ Agent Flow Diagram
 
- Sample inputs (email, JSON, PDF) in sample_inputs/
+![Agent Flow Diagram](screenshots/agent_flow_diagram.png)
 
- Output logs (output_logs.json)
+---
 
- Screenshots/post-action outputs (/screenshots/)
+## 📝 Submission Checklist
 
- Agent flow diagram (/screenshots/agent_flow_diagram.png or /docs/architecture.png)
+- ✅ `README.md`
+- ✅ Sample inputs in `/sample_inputs/`
+- ✅ Output logs: `output_logs.json`
+- ✅ Screenshots: `/screenshots/`
+- ✅ Architecture diagram: `/screenshots/agent_flow_diagram.png`
+- ✅ Video demo (if applicable)
 
- Working video demo (see submission instructions)
+---
+
+## 📬 Contact
+
+Created by **[@saimani21](https://github.com/saimani21)**  
+Feel free to open issues or pull requests!
