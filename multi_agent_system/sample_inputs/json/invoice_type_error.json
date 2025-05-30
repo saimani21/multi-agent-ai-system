@@ -1,0 +1,7 @@
+{
+  "id": "INV-1002",
+  "event_type": "invoice",
+  "amount": "not_a_number",
+  "customer": "Beta Corp",
+  "date": "2025-05-30"
+}

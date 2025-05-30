@@ -1,0 +1,7 @@
+{
+  "id": "INV-1001",
+  "event_type": "invoice",
+  "amount": 9500,
+  "customer": "Acme Corp",
+  "date": "2025-05-30"
+}

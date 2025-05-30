@@ -1,0 +1,49 @@
+{
+  "action": {
+    "source": "invoice_high_total.pdf",
+    "timestamp": "2025-05-30 23:52:27",
+    "action": "flag_compliance",
+    "api_response": {
+      "args": {},
+      "data": "{\"total\": 11000.0, \"compliance_terms\": [], \"flags\": [\"Invoice total > 10,000\"]}",
+      "files": {},
+      "form": {},
+      "headers": {
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate, zstd",
+        "Content-Length": "79",
+        "Content-Type": "application/json",
+        "Host": "httpbin.org",
+        "User-Agent": "python-requests/2.32.3",
+        "X-Amzn-Trace-Id": "Root=1-6839f767-216394373699076173546b8d"
+      },
+      "json": {
+        "compliance_terms": [],
+        "flags": [
+          "Invoice total > 10,000"
+        ],
+        "total": 11000.0
+      },
+      "origin": "223.196.172.245",
+      "url": "https://httpbin.org/post"
+    }
+  },
+  "result": {
+    "source": "invoice_high_total.pdf",
+    "timestamp": "2025-05-30 23:52:27",
+    "total": 11000.0,
+    "compliance_terms": [],
+    "flags": [
+      "Invoice total > 10,000"
+    ]
+  },
+  "classification": {
+    "source": "invoice_high_total.pdf",
+    "timestamp": "2025-05-30 23:52:27",
+    "format": "PDF",
+    "intent": "Invoice"
+  },
+  "test": {
+    "hello": "world"
+  }
+}

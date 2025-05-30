@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+redis
+pydantic
+pdfplumber
+PyPDF2
+faker
+langchain
+requests
+python-dotenv
+textblob
+openai
